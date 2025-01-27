@@ -14,4 +14,4 @@ telegramBot.start(ctx => {
 telegramBot.launch();
 
 trackPosts();
-setInterval(trackPosts, 5000);
+setInterval(trackPosts, 1000);
