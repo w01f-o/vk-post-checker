@@ -31,9 +31,31 @@ const findLinksInPost = (post: VKPost) => {
     post.attachments
       ?.filter(att => att.type === 'link')
       .map(att => att.link.url) || [];
-  const linksFromText = post.text?.match(/https?:\/\/[^\s]+/g) || [];
 
-  return [...linksFromAttachments, ...linksFromText];
+  const extractLinksFromVKMarkdown = (text: string): string[] => {
+    const regex = /\[([^\|]+)\|[^\]]+\]/g;
+    const matches = [];
+    let match;
+    while ((match = regex.exec(text)) !== null) {
+      matches.push(match[1]);
+    }
+    return matches;
+  };
+
+  const linksFromMarkdown = extractLinksFromVKMarkdown(post.text || '');
+  const linksFromText = (post.text?.match(/https?:\/\/[^\s]+/g) || []).filter(
+    url => !linksFromMarkdown.some(markdownUrl => url.includes(markdownUrl))
+  );
+
+  const allLinks = [
+    ...linksFromMarkdown,
+    ...linksFromAttachments,
+    ...linksFromText,
+  ];
+
+  const uniqueLinks = Array.from(new Set(allLinks));
+
+  return uniqueLinks;
 };
 
 let lastPostId: null | number = null;
@@ -53,15 +75,15 @@ export const trackPosts = async () => {
 
       console.log(
         `Новый пост: 
---------------------------------------------------------------------
-${post.text}${
+              --------------------------------------------------------------------
+              ${post.text}${
           links.length
             ? `
---------------------------------------------------------------------
-Ссылки: ${links}`
+              --------------------------------------------------------------------
+              Ссылки: ${links.reduce((acc, link) => `${acc}\n${link}`, '')}`
             : `
---------------------------------------------------------------------
-Ссылок нет`
+              --------------------------------------------------------------------
+              Ссылок нет`
         }`
       );
       sendTelegramMessage(
@@ -71,7 +93,7 @@ ${post.text}${
           links.length
             ? `
 --------------------------------------------------------------------
-Ссылки: ${links}`
+Ссылки: ${links.reduce((acc, link) => `${acc}\n${link}`, '')}`
             : `
 --------------------------------------------------------------------
 Ссылок нет`
