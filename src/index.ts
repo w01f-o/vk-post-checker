@@ -9,6 +9,7 @@ process.once('SIGTERM', () => telegramBot.stop('SIGTERM'));
 
 telegramBot.start(ctx => {
   console.log(`ChatId: ${ctx.chat.id}`);
+  ctx.reply(`${ctx.chat.id}`);
 });
 
 telegramBot.launch();

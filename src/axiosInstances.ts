@@ -25,6 +25,8 @@ export async function getAccessToken() {
       },
     });
 
+    console.log(response.data);
+
     console.log('Access Token:', response.data.access_token);
     console.log('Refresh Token:', response.data.refresh_token);
 
